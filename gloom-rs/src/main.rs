@@ -208,6 +208,10 @@ fn main() {
             0.6, -1.0, 0.0, 0.0, 1.0, 0.0,
             0.8, -0.8, 0.0, 0.0, 1.0, 0.0,
             0.8, -0.6, 0.0, 0.0, 1.0, 0.0,
+           //task 2 a triangle
+            /*0.6, -0.8, -1.2, 1.0, 1.0, 1.0,
+            0.0, 0.4, 0.0, 1.0, 1.0, 1.0,
+            -0.8, -0.2, 1.2, 1.0, 1.0, 1.0,  */
         ];
         let indices: Vec<u32> = vec![
             0, 1, 2, 
@@ -230,13 +234,6 @@ fn main() {
         // This snippet is not enough to do the exercise, and will need to be modified (outside
         // of just using the correct path), but it only needs to be called once
 
-        /*
-        let simple_shader = unsafe {
-            shader::ShaderBuilder::new()
-                .attach_file("./path/to/simple/shader.file")
-                .link()
-        };
-        */
         let simple_shader = unsafe {
             shader::ShaderBuilder::new()
                 .attach_file("./shaders/simple.vert")

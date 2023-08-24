@@ -8,5 +8,6 @@ out layout(location=1) vec3 outColor;
 void main()
 {
     outColor = color;
-    gl_Position = vec4(position, 1.0f);
+    vec3 flipped = vec3(-position.x, -position.y, -position.z); 
+    gl_Position = vec4(flipped, 1.0f);
 }

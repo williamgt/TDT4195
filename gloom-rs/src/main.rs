@@ -189,25 +189,25 @@ fn main() {
         // == // Set up your VAO around here
         let vertices: Vec<f32> = vec![
             //triangle top left
-            -1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-            -1.0, 0.8, 0.0, 1.0, 0.0, 0.0,
-            -0.8, 1.0, 0.0, 1.0, 0.0, 0.0,
+            -0.7, 0.3, 0.0, 0.0, 1.0, 0.0,
+            -0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
+            -0.8, 0.8, 0.0, 0.0, 0.0, 1.0,
             //triangle top right
             0.8, 1.0, 0.0, 1.0, 0.0, 0.0,
-            1.0,  0.8, 0.0, 1.0, 0.0, 0.0,
-            1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+            1.0,  0.8, 0.0, 0.0, 1.0, 0.0,
+            1.0, 1.0, 0.0, 0.0, 0.0, 1.0,
             //triangle middle
             -0.1, -0.1, 0.0, 1.0, 0.0, 0.0,
-            0.1, -0.1, 0.0, 1.0, 0.0, 0.0,
-            0.0,  0.1, 0.0, 1.0, 0.0, 0.0,
+            0.1, -0.1, 0.0, 0.0, 1.0, 0.0,
+            0.0,  0.1, 0.0, 0.0, 0.0, 1.0,
             //triangle bottom left
-            -1.0, -0.8, 0.0, 1.0, 0.0, 0.0,
-            -1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
-            -0.8, -1.0, 0.0, 1.0, 0.0, 0.0,
+            -0.9, -0.5, 0.0, 1.0, 0.0, 0.0,
+            -1.0, -0.6, 0.0, 0.0, 1.0, 0.0,
+            -0.8, -0.6, 0.0, 0.0, 0.0, 1.0,
             //triangle bottom right
-            1.0, -0.8, 0.0, 1.0, 0.0, 0.0,
-            0.8,  -1.0, 0.0, 1.0, 0.0, 0.0,
-            1.0, -1.0, 0.0, 1.0, 0.0, 0.0,
+            0.6, -1.0, 0.0, 0.0, 1.0, 0.0,
+            0.8, -0.8, 0.0, 1.0, 0.0, 0.0,
+            0.8, -0.6, 0.0, 0.0, 0.0, 1.0,
         ];
         let indices: Vec<u32> = vec![
             0, 1, 2, 
@@ -237,22 +237,13 @@ fn main() {
                 .link()
         };
         */
-        let simple_vertex_shader = unsafe {
+        let simple_shader = unsafe {
             shader::ShaderBuilder::new()
                 .attach_file("./shaders/simple.vert")
-                .link()
-        };
-
-        let simple_fragment_shader = unsafe {
-            shader::ShaderBuilder::new()
                 .attach_file("./shaders/simple.frag")
                 .link()
         };
-
-        unsafe {
-            simple_vertex_shader.activate();
-            simple_fragment_shader.activate();
-        }
+        
         // Used to demonstrate keyboard handling for exercise 2.
         let mut _arbitrary_number = 0.0; // feel free to remove
 
@@ -317,6 +308,7 @@ fn main() {
 
 
                 // == // Issue the necessary gl:: commands to draw your scene here
+                simple_shader.activate();
                 gl::BindVertexArray(triangle_vao);
                 gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
 

@@ -240,6 +240,7 @@ fn main() {
                 .attach_file("./shaders/simple.frag")
                 .link()
         };
+
         
         // Used to demonstrate keyboard handling for exercise 2.
         let mut _arbitrary_number = 0.0; // feel free to remove
@@ -309,7 +310,7 @@ fn main() {
                 gl::BindVertexArray(triangle_vao);
                 gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
 
-
+                //gl::Uniform1f(1, elapsed); //Updating uniform
             }
 
             // Display the new color buffer on the display

@@ -240,6 +240,10 @@ fn main() {
                 .attach_file("./shaders/simple.frag")
                 .link()
         };
+        unsafe {
+            simple_shader.activate();
+        }
+        
 
         
         // Used to demonstrate keyboard handling for exercise 2.
@@ -306,7 +310,6 @@ fn main() {
 
 
                 // == // Issue the necessary gl:: commands to draw your scene here
-                simple_shader.activate();
                 gl::BindVertexArray(triangle_vao);
                 gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
 

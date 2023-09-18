@@ -117,6 +117,7 @@ unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>)
         );
     }
 
+    //Enable vertex attrib array for both vap
     unsafe {
         gl::EnableVertexAttribArray(vap_index_v);
         gl::EnableVertexAttribArray(vap_index_c);
@@ -228,13 +229,13 @@ fn main() {
         ];
         let colors: Vec<f32> = vec![
             //triangle top left
-            1.0, 0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 0.0, 1.0,
+            1.0, 0.0, 1.0, 1.0,
             //triangle top right
-            0.0, 0.0, 1.0, 1.0,
-            0.0, 0.0, 1.0, 1.0,
-            0.0, 0.0, 1.0, 1.0,
+            0.0, 0.0, 0.0, 1.0,
+            1.0, 1.0, 1.0, 1.0,
+            0.5, 0.5, 0.5, 1.0,
             //triangle middle
             1.0, 0.0, 0.0, 1.0,
             0.0, 1.0, 0.0, 1.0,

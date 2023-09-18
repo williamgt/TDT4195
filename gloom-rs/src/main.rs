@@ -53,23 +53,19 @@ fn offset<T>(n: u32) -> *const c_void {
 
 
 // == // Generate your VAO here
-unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
-    // Implement me!
-
-    // Also, feel free to delete comments :)
-
-    // This should:
-    // * Generate a VAO and bind it
+unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>) -> u32 {
+    /***FOR VERTICES***/
+    // * Generate a VAO for verticies and bind it
     let mut vao: u32 = 0;
     unsafe {gl::GenVertexArrays(1, &mut vao);} //generating a vao and storing a reference to it in a variable
     unsafe {gl::BindVertexArray(vao);} //binding this vao to signal this is the one currently worked on
 
-    // * Generate a VBO and bind it
-    let mut vbo: u32 = 0;
-    unsafe {gl::GenBuffers(1, &mut vbo);}
-    unsafe {gl::BindBuffer(gl::ARRAY_BUFFER, vbo);}
+    // * Generate a VBO for vertices and bind it
+    let mut vbo_v: u32 = 0;
+    unsafe {gl::GenBuffers(1, &mut vbo_v);}
+    unsafe {gl::BindBuffer(gl::ARRAY_BUFFER, vbo_v);}
 
-    // * Fill it with data
+    // * Fill vbo_v with data
     unsafe {
         gl::BufferData(
             gl::ARRAY_BUFFER, 
@@ -79,28 +75,48 @@ unsafe fn create_vao(vertices: &Vec<f32>, indices: &Vec<u32>) -> u32 {
         );
     }
 
-    // * Configure a VAP for the data and enable it
+    // * Configure a VAP for the vertex data and enable it
     let vap_index_v: u32 = 0;
-    let vap_index_c: u32 = 1;
     unsafe {
         gl::VertexAttribPointer(
             vap_index_v, 
             3, //amount of verticies, 2 if 2d and 3 if 3d
             gl::FLOAT, //type of data
             gl::FALSE,
-            offset::<f32>(6/*3*/) as i32, //buffer contains x, y, z and (unused) r, g, b and each is the size of float
+            offset::<f32>(3) as i32, //buffer contains x, y, z
             0 as *const c_void
         );
+    }
 
-        gl::VertexAttribPointer(
-            vap_index_c, 
-            3, //r, g, b
-            gl::FLOAT, //type of data
-            gl::FALSE,
-            offset::<f32>(6/*3*/) as i32, //buffer contains x, y, z and (unused) r, g, b and each is the size of float
-            offset::<f32>(3)
+    /***FOR COLORS***/
+    // * Generate a VBO for colors and bind it
+    let mut vbo_c: u32 = 0;
+    unsafe {gl::GenBuffers(1, &mut vbo_c);}
+    unsafe {gl::BindBuffer(gl::ARRAY_BUFFER, vbo_c);}
+
+    // * Fill vbo_c with data
+    unsafe {
+        gl::BufferData(
+            gl::ARRAY_BUFFER, 
+            byte_size_of_array(colors),
+            pointer_to_array(colors),
+            gl::STATIC_DRAW
         );
     }
+
+    // * Configure a VAP for the color data and enable it
+    let vap_index_c: u32 = 1;
+    unsafe{
+        gl::VertexAttribPointer(
+            vap_index_c, 
+            4, //r, g, b, a
+            gl::FLOAT, //type of data
+            gl::FALSE,
+            offset::<f32>(4) as i32, //buffer contains r, g, b, a and each is the size of float
+            0 as *const c_void
+        );
+    }
+
     unsafe {
         gl::EnableVertexAttribArray(vap_index_v);
         gl::EnableVertexAttribArray(vap_index_c);
@@ -189,29 +205,48 @@ fn main() {
         // == // Set up your VAO around here
         let vertices: Vec<f32> = vec![
             //triangle top left
-            -0.7, 0.3, 0.0, 1.0, 0.0, 0.0,
-            -0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
-            -0.8, 0.8, 0.0, 1.0, 0.0, 0.0,
+            -0.7, 0.3, 0.0,
+            -0.5, 0.5, 0.0,
+            -0.8, 0.8, 0.0,
             //triangle top right
-            0.8, 1.0, 0.0, 0.0, 0.0, 1.0,
-            1.0,  0.8, 0.0, 0.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+            0.8, 1.0, 0.0, 
+            1.0,  0.8, 0.0,
+            1.0, 1.0, 0.0, 
             //triangle middle
-            -0.1, -0.1, 0.0, 1.0, 0.0, 0.0,
-            0.1, -0.1, 0.0, 0.0, 1.0, 0.0,
-            0.0,  0.1, 0.0, 0.0, 0.0, 1.0,
+            -0.1, -0.1, 0.0,
+            0.1, -0.1, 0.0, 
+            0.0,  0.1, 0.0, 
             //triangle bottom left
-            -0.9, -0.5, 0.0, 1.0, 1.0, 0.0,
-            -1.0, -0.6, 0.0, 1.0, 1.0, 0.0,
-            -0.8, -0.6, 0.0, 1.0, 1.0, 0.0,
+            -0.9, -0.5, 0.0,
+            -1.0, -0.6, 0.0,
+            -0.8, -0.6, 0.0,
             //triangle bottom right
-            0.6, -1.0, 0.0, 0.0, 1.0, 0.0,
-            0.8, -0.8, 0.0, 0.0, 1.0, 0.0,
-            0.8, -0.6, 0.0, 0.0, 1.0, 0.0,
-           //task 2 a triangle
-            /*0.6, -0.8, -1.2, 1.0, 1.0, 1.0,
-            0.0, 0.4, 0.0, 1.0, 1.0, 1.0,
-            -0.8, -0.2, 1.2, 1.0, 1.0, 1.0,  */
+            0.6, -1.0, 0.0,
+            0.8, -0.8, 0.0,
+            0.8, -0.6, 0.0,
+
+        ];
+        let colors: Vec<f32> = vec![
+            //triangle top left
+            1.0, 0.0, 0.0, 1.0,
+            1.0, 0.0, 0.0, 1.0,
+            1.0, 0.0, 0.0, 1.0,
+            //triangle top right
+            0.0, 0.0, 1.0, 1.0,
+            0.0, 0.0, 1.0, 1.0,
+            0.0, 0.0, 1.0, 1.0,
+            //triangle middle
+            1.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0, 1.0,
+            //triangle bottom left
+            1.0, 1.0, 0.0, 1.0,
+            1.0, 1.0, 0.0, 1.0,
+            1.0, 1.0, 0.0, 1.0,
+            //triangle bottom right
+            0.0, 1.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
         ];
         let indices: Vec<u32> = vec![
             0, 1, 2, 
@@ -222,7 +257,7 @@ fn main() {
         ];
 
         //let my_vao = unsafe { 1337 };
-        let triangle_vao = unsafe {create_vao(&vertices, &indices)};
+        let triangle_vao = unsafe {create_vao(&vertices, &colors, &indices)};
 
 
         // == // Set up your shaders here

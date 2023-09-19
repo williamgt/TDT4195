@@ -349,7 +349,9 @@ fn main() {
                 gl::BindVertexArray(triangle_vao);
                 gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
 
-                //gl::Uniform1f(1, elapsed); //Updating uniform
+                //Updating uniform
+                gl::Uniform1f(0, elapsed.sin())
+
             }
 
             // Display the new color buffer on the display

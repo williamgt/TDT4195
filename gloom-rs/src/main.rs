@@ -280,6 +280,8 @@ fn main() {
             simple_shader.activate();
         }
         
+        //Creating an identity matrix that will be sent to the shader
+        let matrix: glm::Mat4 = glm::identity();
 
         
         // Used to demonstrate keyboard handling for exercise 2.
@@ -344,14 +346,12 @@ fn main() {
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky, full opacity
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
+                //Updating uniform containing 4x4 matrix
+                gl::UniformMatrix4fv(0, 1, gl::FALSE, matrix.as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(triangle_vao);
                 gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
-
-                //Updating uniform
-                gl::Uniform1f(0, elapsed.sin())
-
             }
 
             // Display the new color buffer on the display

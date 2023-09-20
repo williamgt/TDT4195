@@ -13,5 +13,5 @@ void main()
 
     vec4 tempPos = vec4(position, 1.0f);
 
-    gl_Position = tempPos * m;
+    gl_Position = m * tempPos;
 }

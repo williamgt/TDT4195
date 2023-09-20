@@ -16,6 +16,7 @@ mod shader;
 mod util;
 
 use gl::UniformMatrix3fv;
+use glm::vec3;
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
 use glutin::event_loop::ControlFlow;
 
@@ -281,6 +282,7 @@ fn main() {
             simple_shader.activate();
         }
         
+        /**** CAMERA MATRIX INITIALIZATIONS ****/
         //Creating a perspective matrix with same aspect ratio as window, fov at 90 deg and clipping plane in [-1, -100]
         let perspective_m: glm::Mat4 = glm::perspective(
             window_aspect_ratio,
@@ -289,20 +291,17 @@ fn main() {
             100.0
         );
 
-        //Creating a translation matrix, moving all geometry -1 along the z-axis
-        let translate_m: glm::Mat4 = glm::translation(&glm::vec3::<f32>(0.0, 0.0, -1.0));
-
-        //Multiplying matrices to get the final transformation
-        let final_m: glm::Mat4 = perspective_m * translate_m;
+        //Camera position along each axis, initially at -1 on z-axis to see all triangles
+        let mut cam_translation: glm::Vec3 = glm::Vec3::new(0.0, 0.0, -1.0);
+        let mut cam_rotation: glm::Vec2 = glm::Vec2::new(0.0, 0.0);
         
-        // Used to demonstrate keyboard handling for exercise 2.
-        let mut _arbitrary_number = 0.0; // feel free to remove
-
-
         // The main rendering loop
         let first_frame_time = std::time::Instant::now();
         let mut prevous_frame_time = first_frame_time;
         loop {
+            //Initialising the camera transformation as the identity matrix
+            let mut cam_transformation: glm::Mat4 = glm::identity();
+
             // Compute time passed since the previous frame and since the start of the program
             let now = std::time::Instant::now();
             let elapsed = now.duration_since(first_frame_time).as_secs_f32();
@@ -327,13 +326,41 @@ fn main() {
                         // The `VirtualKeyCode` enum is defined here:
                         //    https://docs.rs/winit/0.25.0/winit/event/enum.VirtualKeyCode.html
 
+                        //Movement in x-direction
                         VirtualKeyCode::A => {
-                            _arbitrary_number += delta_time;
+                            cam_translation.x += delta_time;
                         }
                         VirtualKeyCode::D => {
-                            _arbitrary_number -= delta_time;
+                            cam_translation.x -= delta_time;
                         }
-
+                        //Movement in y-direction
+                        VirtualKeyCode::LShift => {
+                            cam_translation.y += delta_time;
+                        }
+                        VirtualKeyCode::Space => {
+                            cam_translation.y -= delta_time;
+                        }
+                        //Movement in z-direction
+                        VirtualKeyCode::W => {
+                            cam_translation.z += delta_time;
+                        }
+                        VirtualKeyCode::S => {
+                            cam_translation.z -= delta_time;
+                        }
+                        //Rotate camera along y
+                        VirtualKeyCode::Right => {
+                            cam_rotation.y += delta_time;
+                        }
+                        VirtualKeyCode::Left => {
+                            cam_rotation.y -= delta_time;
+                        }
+                        //Rotate camera along x
+                        VirtualKeyCode::Up => {
+                            cam_rotation.x -= delta_time;
+                        }
+                        VirtualKeyCode::Down => {
+                            cam_rotation.x += delta_time;
+                        }
 
                         // default handler:
                         _ => { }
@@ -349,8 +376,10 @@ fn main() {
                 *delta = (0.0, 0.0); // reset when done
             }
 
-            // == // Please compute camera transforms here (exercise 2 & 3)
-
+            //Calculating the transformation on the geometry
+            cam_transformation = glm::translation(&cam_translation) * cam_transformation; //Translate
+            cam_transformation = glm::rotation( cam_rotation.x, &glm::vec3(1.0, 0.0, 0.0)) * cam_transformation; //Rotate about x
+            cam_transformation = glm::rotation( cam_rotation.y, &glm::vec3(0.0, 1.0, 0.0)) * cam_transformation; //Rotate about y
 
             unsafe {
                 // Clear the color and depth buffers
@@ -358,7 +387,7 @@ fn main() {
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
                 //Updating uniform containing 4x4 matrix
-                gl::UniformMatrix4fv(0, 1, gl::FALSE, final_m.as_ptr());
+                gl::UniformMatrix4fv(0, 1, gl::FALSE, (perspective_m*cam_transformation).as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(triangle_vao);

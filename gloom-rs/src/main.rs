@@ -15,6 +15,7 @@ use std::sync::{Mutex, Arc, RwLock};
 mod shader;
 mod util;
 
+use gl::UniformMatrix3fv;
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
 use glutin::event_loop::ControlFlow;
 
@@ -280,9 +281,19 @@ fn main() {
             simple_shader.activate();
         }
         
-        //Creating an identity matrix that will be sent to the shader
-        let matrix: glm::Mat4 = glm::identity();
+        //Creating a perspective matrix with same aspect ratio as window, fov at 90 deg and clipping plane in [-1, -100]
+        let perspective_m: glm::Mat4 = glm::perspective(
+            window_aspect_ratio,
+            glm::pi::<f32>() / 2.0,
+            1.0,
+            100.0
+        );
 
+        //Creating a translation matrix, moving all geometry -1 along the z-axis
+        let translate_m: glm::Mat4 = glm::translation(&glm::vec3::<f32>(0.0, 0.0, -1.0));
+
+        //Multiplying matrices to get the final transformation
+        let final_m: glm::Mat4 = perspective_m * translate_m;
         
         // Used to demonstrate keyboard handling for exercise 2.
         let mut _arbitrary_number = 0.0; // feel free to remove
@@ -347,7 +358,7 @@ fn main() {
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
                 //Updating uniform containing 4x4 matrix
-                gl::UniformMatrix4fv(0, 1, gl::FALSE, matrix.as_ptr());
+                gl::UniformMatrix4fv(0, 1, gl::FALSE, final_m.as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
                 gl::BindVertexArray(triangle_vao);

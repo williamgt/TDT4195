@@ -14,6 +14,7 @@ use std::sync::{Mutex, Arc, RwLock};
 
 mod shader;
 mod util;
+mod mesh;
 
 use gl::UniformMatrix3fv;
 use glm::vec3;
@@ -262,7 +263,10 @@ fn main() {
         //let my_vao = unsafe { 1337 };
         let triangle_vao = unsafe {create_vao(&vertices, &colors, &indices)};
 
-
+        let lunar_mesh = mesh::Terrain::load("./resources/lunarsurface.obj");
+        let lunar_mesh_vao = unsafe {
+            create_vao(&lunar_mesh.vertices, &lunar_mesh.colors, &lunar_mesh.indices)
+        };
         // == // Set up your shaders here
 
         // Basic usage of shader helper:
@@ -283,12 +287,12 @@ fn main() {
         }
         
         /**** CAMERA MATRIX INITIALIZATIONS ****/
-        //Creating a perspective matrix with same aspect ratio as window, fov at 90 deg and clipping plane in [-1, -100]
+        //Creating a perspective matrix with same aspect ratio as window, fov at 90 deg and clipping plane in [-1, -1000]
         let perspective_m: glm::Mat4 = glm::perspective(
             window_aspect_ratio,
             glm::pi::<f32>() / 2.0,
             1.0,
-            100.0
+            1000.0
         );
 
         //Camera position along each axis, initially at -1 on z-axis to see all triangles
@@ -390,8 +394,10 @@ fn main() {
                 gl::UniformMatrix4fv(0, 1, gl::FALSE, (perspective_m*cam_transformation).as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
-                gl::BindVertexArray(triangle_vao);
-                gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+/*                 gl::BindVertexArray(triangle_vao);
+                gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void); */
+                gl::BindVertexArray(lunar_mesh_vao);
+                gl::DrawElements(gl::TRIANGLES, lunar_mesh.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
             }
 
             // Display the new color buffer on the display

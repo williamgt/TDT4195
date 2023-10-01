@@ -362,24 +362,24 @@ fn main() {
 
                         //Movement in x-direction
                         VirtualKeyCode::A => {
-                            cam_translation.x += delta_time;
+                            cam_translation.x += 100.0 * delta_time;
                         }
                         VirtualKeyCode::D => {
-                            cam_translation.x -= delta_time;
+                            cam_translation.x -= 100.0 * delta_time;
                         }
                         //Movement in y-direction
                         VirtualKeyCode::LShift => {
-                            cam_translation.y += delta_time;
+                            cam_translation.y += 100.0 * delta_time;
                         }
                         VirtualKeyCode::Space => {
-                            cam_translation.y -= delta_time;
+                            cam_translation.y -= 100.0 * delta_time;
                         }
                         //Movement in z-direction
                         VirtualKeyCode::W => {
-                            cam_translation.z += delta_time;
+                            cam_translation.z += 100.0 * delta_time;
                         }
                         VirtualKeyCode::S => {
-                            cam_translation.z -= delta_time;
+                            cam_translation.z -= 100.0 * delta_time;
                         }
                         //Rotate camera along y
                         VirtualKeyCode::Right => {

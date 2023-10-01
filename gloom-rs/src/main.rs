@@ -56,7 +56,7 @@ fn offset<T>(n: u32) -> *const c_void {
 
 
 // == // Generate your VAO here
-unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>) -> u32 {
+unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>, normals: &Vec<f32>) -> u32 {
     /***FOR VERTICES***/
     // * Generate a VAO for verticies and bind it
     let mut vao: u32 = 0;
@@ -120,10 +120,40 @@ unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>)
         );
     }
 
+    /***FOR NORMALS***/
+    // * Generate a VBO for normals and bind it
+    let mut vbo_n: u32 = 0;
+    unsafe {gl::GenBuffers(1, &mut vbo_n);}
+    unsafe {gl::BindBuffer(gl::ARRAY_BUFFER, vbo_n);}
+
+    // * Fill vbo_n with data
+    unsafe {
+        gl::BufferData(
+            gl::ARRAY_BUFFER, 
+            byte_size_of_array(normals),
+            pointer_to_array(normals),
+            gl::STATIC_DRAW
+        );
+    }
+
+    // * Configure a VAP for the color data and enable it
+    let vap_index_n: u32 = 2;
+    unsafe{
+        gl::VertexAttribPointer(
+            vap_index_n, 
+            3, //x, y, z
+            gl::FLOAT, //type of data
+            gl::FALSE,
+            offset::<f32>(3) as i32, //buffer contains x, y, z and each is the size of float
+            0 as *const c_void
+        );
+    }
+
     //Enable vertex attrib array for both vap
     unsafe {
         gl::EnableVertexAttribArray(vap_index_v);
         gl::EnableVertexAttribArray(vap_index_c);
+        gl::EnableVertexAttribArray(vap_index_n);
     }
 
     // * Generate a IBO and bind it
@@ -261,11 +291,11 @@ fn main() {
         ];
 
         //let my_vao = unsafe { 1337 };
-        let triangle_vao = unsafe {create_vao(&vertices, &colors, &indices)};
+        //let triangle_vao = unsafe {create_vao(&vertices, &colors, &indices)};
 
         let lunar_mesh = mesh::Terrain::load("./resources/lunarsurface.obj");
         let lunar_mesh_vao = unsafe {
-            create_vao(&lunar_mesh.vertices, &lunar_mesh.colors, &lunar_mesh.indices)
+            create_vao(&lunar_mesh.vertices, &lunar_mesh.colors, &lunar_mesh.indices, &lunar_mesh.normals)
         };
         // == // Set up your shaders here
 

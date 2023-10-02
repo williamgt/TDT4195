@@ -297,6 +297,32 @@ fn main() {
         let lunar_mesh_vao = unsafe {
             create_vao(&lunar_mesh.vertices, &lunar_mesh.colors, &lunar_mesh.indices, &lunar_mesh.normals)
         };
+
+        let helicopter_mesh = mesh::Helicopter::load("./resources/helicopter.obj");
+        let helicopter_mesh_body_vao = unsafe{create_vao(
+            &helicopter_mesh.body.vertices, 
+            &helicopter_mesh.body.colors, 
+            &helicopter_mesh.body.indices, 
+            &helicopter_mesh.body.normals)
+        };
+        let helicopter_mesh_door_vao = unsafe{create_vao(
+            &helicopter_mesh.door.vertices, 
+            &helicopter_mesh.door.colors, 
+            &helicopter_mesh.door.indices, 
+            &helicopter_mesh.door.normals)
+        };
+        let helicopter_mesh_main_rotor_vao = unsafe{create_vao(
+            &helicopter_mesh.main_rotor.vertices, 
+            &helicopter_mesh.main_rotor.colors, 
+            &helicopter_mesh.main_rotor.indices, 
+            &helicopter_mesh.main_rotor.normals)
+        };
+        let helicopter_mesh_tail_rotor_vao = unsafe{create_vao(
+            &helicopter_mesh.tail_rotor.vertices, 
+            &helicopter_mesh.tail_rotor.colors, 
+            &helicopter_mesh.tail_rotor.indices, 
+            &helicopter_mesh.tail_rotor.normals)
+        };
         // == // Set up your shaders here
 
         // Basic usage of shader helper:
@@ -424,10 +450,19 @@ fn main() {
                 gl::UniformMatrix4fv(0, 1, gl::FALSE, (perspective_m*cam_transformation).as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
-/*                 gl::BindVertexArray(triangle_vao);
-                gl::DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void); */
+                //Lunar mesh
                 gl::BindVertexArray(lunar_mesh_vao);
                 gl::DrawElements(gl::TRIANGLES, lunar_mesh.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+
+                //Different parts of helicopter mesh
+                gl::BindVertexArray(helicopter_mesh_body_vao);
+                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.body.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+                gl::BindVertexArray(helicopter_mesh_door_vao);
+                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.door.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+                gl::BindVertexArray(helicopter_mesh_main_rotor_vao);
+                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.main_rotor.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+                gl::BindVertexArray(helicopter_mesh_tail_rotor_vao);
+                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.tail_rotor.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
             }
 
             // Display the new color buffer on the display

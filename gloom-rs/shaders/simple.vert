@@ -8,6 +8,7 @@ out layout(location=1) vec4 outColor;
 out layout(location=2) vec3 outNormals;
 
 uniform layout(location=0) mat4x4 m;
+uniform layout(location=1) mat4x4 mvp;
 
 void main()
 {
@@ -16,5 +17,5 @@ void main()
 
     vec4 tempPos = vec4(position, 1.0f);
 
-    gl_Position = m * tempPos;
+    gl_Position = mvp * tempPos;
 }

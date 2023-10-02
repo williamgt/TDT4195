@@ -16,6 +16,7 @@ mod shader;
 mod util;
 mod mesh;
 mod scene_graph;
+mod toolbox;
 
 use gl::UniformMatrix3fv;
 use glm::{vec3, identity};
@@ -183,14 +184,14 @@ unsafe fn draw_scene(node: &scene_graph::SceneNode,
     transformation_so_far: &glm::Mat4) {
     // Perform any logic needed before drawing the node
     let mut trans: glm::Mat4 = glm::identity();
-    trans = glm::translation(&node.position) * trans; // translate
-    trans = glm::translation(&node.reference_point) * trans; // translate back to reference point
+    trans = glm::translation(&-node.reference_point) * trans; // translate back to reference point
     trans = glm::rotation(node.rotation.x, &glm::vec3(1.0, 0.0, 0.0)) * trans; // apply a rotation on x
     trans = glm::rotation(node.rotation.y, &glm::vec3(0.0, 1.0, 0.0)) * trans; // apply a rotation on y
     trans = glm::rotation(node.rotation.z, &glm::vec3(0.0, 0.0, 1.0)) * trans; // apply a rotation on z
-    trans = glm::translation(&-node.reference_point) * trans; // translate to origin based on reference point
+    trans = glm::translation(&node.position) * trans; // translate
+    trans = glm::translation(&node.reference_point) * trans; // translate to origin based on reference point
 
-    trans = trans * transformation_so_far; //Combining it with transformation so far
+    trans = transformation_so_far * trans; //Combining it with transformation so far
 
     // Check if node is drawable, if so: set uniforms, bind VAO and draw VAO
     if node.index_count > 0 {
@@ -310,7 +311,6 @@ fn main() {
         let mut helicopter_door_node = SceneNode::from_vao(helicopter_mesh_door_vao, helicopter_mesh.door.index_count);
         let mut helicopter_main_rotor_node = SceneNode::from_vao(helicopter_mesh_main_rotor_vao, helicopter_mesh.main_rotor.index_count);
         let mut helicopter_tail_rotor_node = SceneNode::from_vao(helicopter_mesh_tail_rotor_vao, helicopter_mesh.tail_rotor.index_count);
-        let mut counter = 0.0;
         //setting reference points for rotors
         helicopter_tail_rotor_node.reference_point = glm::Vec3::new(0.35, 2.3, 10.4); //given in task description
         //helicopter_main_rotor_node.reference_point = glm::Vec3::new(0.0, 2.3, 0.0); //since main rotor rotates around y, don't need to add ref
@@ -321,8 +321,6 @@ fn main() {
         helicopter_body_node.add_child(&helicopter_main_rotor_node);
         helicopter_body_node.add_child(&helicopter_tail_rotor_node);
         
-        helicopter_tail_rotor_node.print();
-
         // == // Set up your shaders here
 
         let simple_shader = unsafe {
@@ -352,9 +350,6 @@ fn main() {
         let first_frame_time = std::time::Instant::now();
         let mut prevous_frame_time = first_frame_time;
         loop {
-            counter += 0.001;
-            helicopter_body_node.position.x = counter;
-            helicopter_body_node.rotation.x = counter;
             //Initialising the camera transformation as the identity matrix
             let identity_matrix: glm::Mat4 = glm::identity();
             let mut cam_transformation: glm::Mat4 = glm::identity();
@@ -364,6 +359,16 @@ fn main() {
             let elapsed = now.duration_since(first_frame_time).as_secs_f32();
             let delta_time = now.duration_since(prevous_frame_time).as_secs_f32();
             prevous_frame_time = now;
+
+            //Calculate and set values for helicopter body and rotors movement/rotations
+            let heading = toolbox::simple_heading_animation(elapsed);
+            helicopter_body_node.position.x = heading.x;
+            helicopter_body_node.position.z = heading.z;
+            helicopter_body_node.rotation.x = heading.pitch;
+            helicopter_body_node.rotation.y = heading.yaw;
+            helicopter_body_node.rotation.z = heading.roll;
+            helicopter_tail_rotor_node.rotation.x = 2.0 * elapsed;
+            helicopter_main_rotor_node.rotation.y = 2.0 * elapsed;
 
             // Handle resize events
             if let Ok(mut new_size) = window_size.lock() {

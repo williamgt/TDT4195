@@ -15,11 +15,13 @@ use std::sync::{Mutex, Arc, RwLock};
 mod shader;
 mod util;
 mod mesh;
+mod scene_graph;
 
 use gl::UniformMatrix3fv;
 use glm::vec3;
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
 use glutin::event_loop::ControlFlow;
+use scene_graph::SceneNode;
 
 // initial window size
 const INITIAL_SCREEN_W: u32 = 800;
@@ -237,61 +239,6 @@ fn main() {
         }
 
         // == // Set up your VAO around here
-        let vertices: Vec<f32> = vec![
-            //triangle R
-            -0.5,  0.5,  0.0,  
-            -0.5, -0.5,  0.0, 
-            0.5, -0.5,   0.0,
-            //triangle G
-            0.0,  0.5,  -0.5, 
-            0.0, -0.5,  -0.5, 
-            0.5,  0.5,  -0.5,  
-            //triangle B
-            -0.5,  0.0,  -1.0,  
-            0.0, -0.5,  -1.0,
-            0.5,  0.0,  -1.0, 
-            //triangle bottom left
-/*             -0.9, -0.5, 0.0,
-            -1.0, -0.6, 0.0,
-            -0.8, -0.6, 0.0,
-            //triangle bottom right
-            0.6, -1.0, 0.0,
-            0.8, -0.8, 0.0,
-            0.8, -0.6, 0.0, */
-
-        ];
-        let colors: Vec<f32> = vec![
-            //triangle R
-            1.0, 0.0, 0.0, 0.15,
-            1.0, 0.0, 0.0, 0.15,
-            1.0, 0.0, 0.0, 0.15,
-            //triangle G
-            0.0, 1.0, 0.0, 0.5,
-            0.0, 1.0, 0.0, 0.5,
-            0.0, 1.0, 0.0, 0.5,
-            //triangle B
-            0.0, 0.0, 1.0, 0.65,
-            0.0, 0.0, 1.0, 0.65,
-            0.0, 0.0, 1.0, 0.65,
-/*             //triangle bottom left
-            1.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
-            //triangle bottom right
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0, */
-        ];
-        let indices: Vec<u32> = vec![
-            0, 1, 2, 
-            3, 4, 5,
-            6, 7, 8,
-/*             9, 10, 11,
-            12, 13, 14, */
-        ];
-
-        //let my_vao = unsafe { 1337 };
-        //let triangle_vao = unsafe {create_vao(&vertices, &colors, &indices)};
 
         let lunar_mesh = mesh::Terrain::load("./resources/lunarsurface.obj");
         let lunar_mesh_vao = unsafe {
@@ -323,14 +270,24 @@ fn main() {
             &helicopter_mesh.tail_rotor.indices, 
             &helicopter_mesh.tail_rotor.normals)
         };
-        // == // Set up your shaders here
 
-        // Basic usage of shader helper:
-        // The example code below creates a 'shader' object.
-        // It which contains the field `.program_id` and the method `.activate()`.
-        // The `.` in the path is relative to `Cargo.toml`.
-        // This snippet is not enough to do the exercise, and will need to be modified (outside
-        // of just using the correct path), but it only needs to be called once
+        /**** Generating scene nodes here ****/
+        let mut root_node = SceneNode::new(); 
+
+        let mut lunar_node = SceneNode::from_vao(lunar_mesh_vao, lunar_mesh.index_count);
+        
+        let mut helicopter_body_node = SceneNode::from_vao(helicopter_mesh_body_vao, helicopter_mesh.body.index_count);
+        let mut helicopter_door_node = SceneNode::from_vao(helicopter_mesh_door_vao, helicopter_mesh.door.index_count);
+        let mut helicopter_main_rotor_node = SceneNode::from_vao(helicopter_mesh_main_rotor_vao, helicopter_mesh.main_rotor.index_count);
+        let mut helicopter_tail_rotor_node = SceneNode::from_vao(helicopter_mesh_tail_rotor_vao, helicopter_mesh.tail_rotor.index_count);
+        
+        root_node.add_child(&lunar_node); //Adding lunar node to root
+        lunar_node.add_child(&helicopter_body_node); //Adding helicopter to lunar node
+        helicopter_body_node.add_child(&helicopter_door_node); //Adding all parts of helicopter to helicopter...
+        helicopter_body_node.add_child(&helicopter_main_rotor_node);
+        helicopter_body_node.add_child(&helicopter_tail_rotor_node);
+
+        // == // Set up your shaders here
 
         let simple_shader = unsafe {
             shader::ShaderBuilder::new()

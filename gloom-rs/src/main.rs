@@ -139,7 +139,7 @@ unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>,
         );
     }
 
-    // * Configure a VAP for the color data and enable it
+    // * Configure a VAP for the normal data and enable it
     let vap_index_n: u32 = 2;
     unsafe{
         gl::VertexAttribPointer(
@@ -197,7 +197,8 @@ unsafe fn draw_scene(node: &scene_graph::SceneNode,
     if node.index_count > 0 {
         gl::BindVertexArray(node.vao_id);
 
-        gl::UniformMatrix4fv(1, 1, gl::FALSE, (view_projection_matrix*trans).as_ptr()); // send MVP matrix to layout 1
+        gl::UniformMatrix4fv(1, 1, gl::FALSE, (trans).as_ptr()); // send Model matrix to layout 1
+        gl::UniformMatrix4fv(2, 1, gl::FALSE, (view_projection_matrix).as_ptr()); // send View Projection matrix to layout 2
 
         gl::DrawElements(gl::TRIANGLES, node.index_count as i32, gl::UNSIGNED_INT, 0 as *const c_void);
     }
@@ -362,11 +363,11 @@ fn main() {
 
             //Calculate and set values for helicopter body and rotors movement/rotations
             let heading = toolbox::simple_heading_animation(elapsed);
-            helicopter_body_node.position.x = heading.x;
+            /* helicopter_body_node.position.x = heading.x;
             helicopter_body_node.position.z = heading.z;
-            helicopter_body_node.rotation.x = heading.pitch;
+            helicopter_body_node.rotation.x = heading.pitch; */
             helicopter_body_node.rotation.y = heading.yaw;
-            helicopter_body_node.rotation.z = heading.roll;
+            /* helicopter_body_node.rotation.z = heading.roll; */
             helicopter_tail_rotor_node.rotation.x = 2.0 * elapsed;
             helicopter_main_rotor_node.rotation.y = 2.0 * elapsed;
 

@@ -9,5 +9,6 @@ void main()
 {
     vec3 lightDirection = normalize(vec3(0.8f, -0.5f, 0.6f));
     float colorContrib = max(0.0f, dot(normal, (-lightDirection)));
-    color = vertexColour * colorContrib;
+    vec4 vertexColorWithContrib = vertexColour * colorContrib; 
+    color = vec4(vertexColorWithContrib.xyz, vertexColour.a);
 }

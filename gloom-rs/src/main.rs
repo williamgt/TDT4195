@@ -18,7 +18,7 @@ mod mesh;
 mod scene_graph;
 
 use gl::UniformMatrix3fv;
-use glm::vec3;
+use glm::{vec3, identity};
 use glutin::event::{Event, WindowEvent, DeviceEvent, KeyboardInput, ElementState::{Pressed, Released}, VirtualKeyCode::{self, *}};
 use glutin::event_loop::ControlFlow;
 use scene_graph::SceneNode;
@@ -178,6 +178,23 @@ unsafe fn create_vao(vertices: &Vec<f32>, colors: &Vec<f32>, indices: &Vec<u32>,
     vao
 }
 
+unsafe fn draw_scene(node: &scene_graph::SceneNode,
+    view_projection_matrix: &glm::Mat4,
+    transformation_so_far: &glm::Mat4) {
+    // Perform any logic needed before drawing the node
+    // Check if node is drawable, if so: set uniforms, bind VAO and draw VAO
+    if node.index_count > 0 {
+        gl::BindVertexArray(node.vao_id);
+        gl::DrawElements(gl::TRIANGLES, node.index_count as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+    }
+    
+    // Recurse
+    for &child in &node.children {
+        draw_scene(&*child, view_projection_matrix, transformation_so_far);
+    }
+}
+    
+
 
 fn main() {
     // Set up the necessary objects to deal with windows and event handling
@@ -281,11 +298,17 @@ fn main() {
         let mut helicopter_main_rotor_node = SceneNode::from_vao(helicopter_mesh_main_rotor_vao, helicopter_mesh.main_rotor.index_count);
         let mut helicopter_tail_rotor_node = SceneNode::from_vao(helicopter_mesh_tail_rotor_vao, helicopter_mesh.tail_rotor.index_count);
         
+        //setting reference points for rotors
+        helicopter_tail_rotor_node.reference_point = glm::Vec3::new(0.35, 2.3, 10.4); //given in task description
+        //helicopter_main_rotor_node.reference_point = glm::Vec3::new(0.0, 2.3, 0.0); //since main rotor rotates around y, don't need to add ref
+
         root_node.add_child(&lunar_node); //Adding lunar node to root
         lunar_node.add_child(&helicopter_body_node); //Adding helicopter to lunar node
-        helicopter_body_node.add_child(&helicopter_door_node); //Adding all parts of helicopter to helicopter...
+        helicopter_body_node.add_child(&helicopter_door_node); //Adding all parts of helicopter to helicopter body, having it act as the root
         helicopter_body_node.add_child(&helicopter_main_rotor_node);
         helicopter_body_node.add_child(&helicopter_tail_rotor_node);
+        
+        helicopter_tail_rotor_node.print();
 
         // == // Set up your shaders here
 
@@ -317,6 +340,7 @@ fn main() {
         let mut prevous_frame_time = first_frame_time;
         loop {
             //Initialising the camera transformation as the identity matrix
+            let identity_matrix: glm::Mat4 = glm::identity();
             let mut cam_transformation: glm::Mat4 = glm::identity();
 
             // Compute time passed since the previous frame and since the start of the program
@@ -397,17 +421,17 @@ fn main() {
             cam_transformation = glm::translation(&cam_translation) * cam_transformation; //Translate
             cam_transformation = glm::rotation( cam_rotation.x, &glm::vec3(1.0, 0.0, 0.0)) * cam_transformation; //Rotate about x
             cam_transformation = glm::rotation( cam_rotation.y, &glm::vec3(0.0, 1.0, 0.0)) * cam_transformation; //Rotate about y
-
+            cam_transformation = perspective_m*cam_transformation;
             unsafe {
                 // Clear the color and depth buffers
                 gl::ClearColor(0.035, 0.046, 0.078, 1.0); // night sky, full opacity
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
                 //Updating uniform containing 4x4 matrix
-                gl::UniformMatrix4fv(0, 1, gl::FALSE, (perspective_m*cam_transformation).as_ptr());
+                gl::UniformMatrix4fv(0, 1, gl::FALSE, (cam_transformation).as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
-                //Lunar mesh
+/*                 //Lunar mesh
                 gl::BindVertexArray(lunar_mesh_vao);
                 gl::DrawElements(gl::TRIANGLES, lunar_mesh.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
 
@@ -420,6 +444,8 @@ fn main() {
                 gl::DrawElements(gl::TRIANGLES, helicopter_mesh.main_rotor.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
                 gl::BindVertexArray(helicopter_mesh_tail_rotor_vao);
                 gl::DrawElements(gl::TRIANGLES, helicopter_mesh.tail_rotor.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
+                 */
+                draw_scene(&root_node, &cam_transformation, &identity_matrix);
             }
 
             // Display the new color buffer on the display

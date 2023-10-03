@@ -308,19 +308,31 @@ fn main() {
 
         let mut lunar_node = SceneNode::from_vao(lunar_mesh_vao, lunar_mesh.index_count);
         
-        let mut helicopter_body_node = SceneNode::from_vao(helicopter_mesh_body_vao, helicopter_mesh.body.index_count);
-        let mut helicopter_door_node = SceneNode::from_vao(helicopter_mesh_door_vao, helicopter_mesh.door.index_count);
-        let mut helicopter_main_rotor_node = SceneNode::from_vao(helicopter_mesh_main_rotor_vao, helicopter_mesh.main_rotor.index_count);
-        let mut helicopter_tail_rotor_node = SceneNode::from_vao(helicopter_mesh_tail_rotor_vao, helicopter_mesh.tail_rotor.index_count);
-        //setting reference points for rotors
-        helicopter_tail_rotor_node.reference_point = glm::Vec3::new(0.35, 2.3, 10.4); //given in task description
-        //helicopter_main_rotor_node.reference_point = glm::Vec3::new(0.0, 2.3, 0.0); //since main rotor rotates around y, don't need to add ref
+        //Creating vector with helicopters in it
+        let mut helicopter_nodes: Vec<scene_graph::Node> = Vec::new();
+        for n in 0..5 {
+            //Creating helicopter parts
+            let mut helicopter_body_node = SceneNode::from_vao(helicopter_mesh_body_vao, helicopter_mesh.body.index_count);
+            let mut helicopter_door_node = SceneNode::from_vao(helicopter_mesh_door_vao, helicopter_mesh.door.index_count);
+            let mut helicopter_main_rotor_node = SceneNode::from_vao(helicopter_mesh_main_rotor_vao, helicopter_mesh.main_rotor.index_count);
+            let mut helicopter_tail_rotor_node = SceneNode::from_vao(helicopter_mesh_tail_rotor_vao, helicopter_mesh.tail_rotor.index_count);
+            
+            //setting reference points for tail rotor
+            helicopter_tail_rotor_node.reference_point = glm::Vec3::new(0.35, 2.3, 10.4); //given in task description
+
+            //Adding helicopter to lunar node
+            lunar_node.add_child(&helicopter_body_node); 
+
+            //Adding all parts of helicopter to helicopter body, having it act as the root
+            helicopter_body_node.add_child(&helicopter_door_node); 
+            helicopter_body_node.add_child(&helicopter_main_rotor_node);
+            helicopter_body_node.add_child(&helicopter_tail_rotor_node);
+
+            //Finally pushing the helicopter to the vector
+            helicopter_nodes.push(helicopter_body_node)
+        }
 
         root_node.add_child(&lunar_node); //Adding lunar node to root
-        lunar_node.add_child(&helicopter_body_node); //Adding helicopter to lunar node
-        helicopter_body_node.add_child(&helicopter_door_node); //Adding all parts of helicopter to helicopter body, having it act as the root
-        helicopter_body_node.add_child(&helicopter_main_rotor_node);
-        helicopter_body_node.add_child(&helicopter_tail_rotor_node);
         
         // == // Set up your shaders here
 
@@ -361,15 +373,17 @@ fn main() {
             let delta_time = now.duration_since(prevous_frame_time).as_secs_f32();
             prevous_frame_time = now;
 
-            //Calculate and set values for helicopter body and rotors movement/rotations
-            let heading = toolbox::simple_heading_animation(elapsed);
-            /* helicopter_body_node.position.x = heading.x;
-            helicopter_body_node.position.z = heading.z;
-            helicopter_body_node.rotation.x = heading.pitch; */
-            helicopter_body_node.rotation.y = heading.yaw;
-            /* helicopter_body_node.rotation.z = heading.roll; */
-            helicopter_tail_rotor_node.rotation.x = 2.0 * elapsed;
-            helicopter_main_rotor_node.rotation.y = 2.0 * elapsed;
+            //Calculate and set values for helicopter body and rotors movement/rotations for 5 helicopters spaced by 0.75 seconds
+            for n in 0..5 {
+                let heading = toolbox::simple_heading_animation(elapsed + (n as f32 * 0.75));
+                helicopter_nodes[n].position.x = heading.x;
+                helicopter_nodes[n].position.z = heading.z;
+                helicopter_nodes[n].rotation.x = heading.pitch;
+                helicopter_nodes[n].rotation.y = heading.yaw;
+                helicopter_nodes[n].rotation.z = heading.roll;
+                helicopter_nodes[n].get_child(1).rotation.y = 2.0 * elapsed; //main rotor
+                helicopter_nodes[n].get_child(2).rotation.x = 2.0 * elapsed; //tail rotor
+            }
 
             // Handle resize events
             if let Ok(mut new_size) = window_size.lock() {
@@ -453,20 +467,6 @@ fn main() {
                 gl::UniformMatrix4fv(0, 1, gl::FALSE, (cam_transformation).as_ptr());
 
                 // == // Issue the necessary gl:: commands to draw your scene here
-/*                 //Lunar mesh
-                gl::BindVertexArray(lunar_mesh_vao);
-                gl::DrawElements(gl::TRIANGLES, lunar_mesh.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
-
-                //Different parts of helicopter mesh
-                gl::BindVertexArray(helicopter_mesh_body_vao);
-                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.body.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
-                gl::BindVertexArray(helicopter_mesh_door_vao);
-                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.door.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
-                gl::BindVertexArray(helicopter_mesh_main_rotor_vao);
-                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.main_rotor.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
-                gl::BindVertexArray(helicopter_mesh_tail_rotor_vao);
-                gl::DrawElements(gl::TRIANGLES, helicopter_mesh.tail_rotor.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const c_void);
-                 */
                 draw_scene(&root_node, &cam_transformation, &identity_matrix);
             }
 
